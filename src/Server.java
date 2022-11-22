@@ -98,7 +98,12 @@ public class Server implements Runnable {
                         System.out.println(nickname + " disconnected!");
                         //shutdown();
                     } else {
-                        broadcast(nickname + ": " + message);
+                        if(nickname.equalsIgnoreCase("panda19")) {
+                            broadcast("(Owner) " + nickname + ": " + message);
+                            System.out.println("Owner Found");
+                        } else {
+                            broadcast(nickname + ": " + message);
+                        }
                     }
                 }
             } catch (IOException e) {
