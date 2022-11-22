@@ -6,15 +6,15 @@ import java.net.Socket;
 
 public class Client implements Runnable {
 
-    private Socket client;
-    private BufferedReader in;
-    private PrintWriter out;
+    private Socket client; //A socket is an endpoint for communication between two machines.
+    private BufferedReader in;  //Reads text from a character-input stream, buffering characters to provide for the efficient reading of characters, arrays, and lines.
+    private PrintWriter out; //Prints formatted representations of objects to a text-output stream.
     private boolean done;
 
     @Override
     public void run() {
         try {
-            client = new Socket("127.0.0.1", 9999);
+            client = new Socket("127.0.0.1", 9999); //Creates a stream socket and connects it to the specified port number on the named host.
             out = new PrintWriter(client.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(client.getInputStream()));
 

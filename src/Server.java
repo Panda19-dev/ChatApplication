@@ -11,25 +11,25 @@ import java.util.concurrent.Executors;
 public class Server implements Runnable {
 
     private ArrayList<ConnectionHandler> connections;
-    private ServerSocket server;
+    private ServerSocket server; //A server socket waits for requests to come in over the network. It performs some operation based on that request, and then possibly returns a result to the requester.
     private boolean done;
     private ExecutorService pool;
 
-    public Server() {
-        connections = new ArrayList<>();
+    public Server() { //Class constructor
+        connections = new ArrayList<>(); //Initializing the arraylist
         done = false;
     }
 
     @Override
-    public void run() {
+    public void run() { //Method that runs when application starts.
 
         try {
-            server = new ServerSocket(9999);
-            pool = Executors.newCachedThreadPool();
+            server = new ServerSocket(9999); //Initializing server
+            pool = Executors.newCachedThreadPool(); //Initializing pool
             while (!done) {
-                Socket client = server.accept();
+                Socket client = server.accept(); //Listens for a connection to be made to this socket and accepts it. The method blocks until a connection is made.
                 ConnectionHandler handler = new ConnectionHandler(client);
-                connections.add(handler);
+                connections.add(handler); //Appends the specified element to the end of this list.
                 pool.execute(handler);
             }
         } catch (IOException e) {
@@ -38,14 +38,18 @@ public class Server implements Runnable {
 
     }
 
-    public void broadcast(String message) {
+    public void broadcast(String message, String nickname) { //Send message to all people in the ConnectionHandler
         for (ConnectionHandler ch : connections) {
             if (ch != null) {
+                if (ch.nickname.equals(nickname)) { //Do not send message to message owner twice.(NEEDS TO BE REMOVED WHEN GRAPHICS IS DONE)
+                    continue;
+                }
+                //Send the message if it isn´t the message owner.
                 ch.sendMessage(message);
             }
         }
     }
-    public void shutdown() {
+    public void shutdown() { //Close and shutdown
         try {
             done = true;
             pool.shutdown();
@@ -60,7 +64,7 @@ public class Server implements Runnable {
         }
     }
 
-    class ConnectionHandler implements Runnable {
+    class ConnectionHandler implements Runnable { //Inner Class that represent all people that connects via a client.
 
         private Socket client;
         private BufferedReader in;
@@ -74,18 +78,18 @@ public class Server implements Runnable {
         @Override
         public void run() {
             try {
-                out = new PrintWriter(client.getOutputStream(), true);
-                in = new BufferedReader(new InputStreamReader(client.getInputStream()));
+                out = new PrintWriter(client.getOutputStream(), true); //Initializing writer
+                in = new BufferedReader(new InputStreamReader(client.getInputStream())); //Initializing reader
                 out.println("Please enter a nickname: ");
                 nickname = in.readLine();
                 System.out.println(nickname + " connected!");
-                broadcast(nickname + " joined the chat!");
+                broadcast(nickname + " joined the chat!", nickname);
                 String message;
                 while ((message = in.readLine()) != null) {
-                    if (message.startsWith("/nick")) {
+                    if (message.startsWith("/nick")) { //NICK COMMAND
                         String[] messageSplit = message.split(" ", 2);
                         if (messageSplit.length == 2) {
-                            broadcast(nickname + " renamed themselves to " + messageSplit[1]);
+                            broadcast(nickname + " renamed themselves to " + messageSplit[1], nickname);
                             System.out.println(nickname + " changed nickname to " + messageSplit[1]);
                             nickname = messageSplit[1];
                             out.println("Successfully changed nickname to " + nickname);
@@ -94,15 +98,15 @@ public class Server implements Runnable {
                         }
                     } else if (message.startsWith("/quit")) {
                         shutdown();
-                        broadcast(nickname + " left the chat!");
+                        broadcast(nickname + " left the chat!", nickname);
                         System.out.println(nickname + " disconnected!");
                         //shutdown();
                     } else {
                         if(nickname.equalsIgnoreCase("panda19")) {
-                            broadcast("(Owner) " + nickname + ": " + message);
+                            broadcast("(Owner) " + nickname + ": " + message, nickname);
                             System.out.println("Owner Found");
                         } else {
-                            broadcast(nickname + ": " + message);
+                            broadcast(nickname + ": " + message, nickname);
                         }
                     }
                 }
