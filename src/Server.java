@@ -78,6 +78,7 @@ public class Server implements Runnable {
         @Override
         public void run() {
             try {
+                String prefix = "/"; // THE PREFIX FOR ALL COMMANDS
                 out = new PrintWriter(client.getOutputStream(), true); //Initializing writer
                 in = new BufferedReader(new InputStreamReader(client.getInputStream())); //Initializing reader
                 out.println("Please enter a nickname: ");
@@ -86,7 +87,7 @@ public class Server implements Runnable {
                 broadcast(nickname + " joined the chat!", nickname);
                 String message;
                 while ((message = in.readLine()) != null) {
-                    if (message.startsWith("/nick")) { //NICK COMMAND
+                    if (message.startsWith(prefix + "nick")) { //NICK COMMAND
                         String[] messageSplit = message.split(" ", 2);
                         if (messageSplit.length == 2) {
                             broadcast(nickname + " renamed themselves to " + messageSplit[1], nickname);
@@ -96,11 +97,27 @@ public class Server implements Runnable {
                         } else {
                             out.println("No nickname provided!");
                         }
-                    } else if (message.startsWith("/quit")) {
+                    } else if (message.startsWith(prefix + "quit")) {
                         shutdown();
                         broadcast(nickname + " left the chat!", nickname);
                         System.out.println(nickname + " disconnected!");
-                        //shutdown();
+                    } else if (message.startsWith(prefix + "kick")) { //KICK COMMAND
+                        String[] messageSplit = message.split(" ", 2);
+                        if(messageSplit.length == 2) {
+                            try {
+                                for (ConnectionHandler ch : connections) {
+                                    if(messageSplit[1].trim().equalsIgnoreCase(ch.nickname)) {
+                                        ch.sendMessage("You have been kicked!");
+                                        ch.shutdown();
+                                        broadcast(ch.nickname + " has been kicked", "SERVER");
+                                    }
+                                }
+                            } catch(Exception e) {
+                                System.out.println(e.getMessage());
+                            }
+                        } else {
+                            sendMessage("SERVER: You need to specify the member you want to kick.");
+                        }
                     } else {
                         if(nickname.equalsIgnoreCase("panda19")) {
                             broadcast("(Owner) " + nickname + ": " + message, nickname);
