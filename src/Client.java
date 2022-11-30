@@ -11,14 +11,17 @@ public class Client implements Runnable {
     private BufferedReader in;  //Reads text from a character-input stream, buffering characters to provide for the efficient reading of characters, arrays, and lines.
     private PrintWriter out; //Prints formatted representations of objects to a text-output stream.
     private boolean done;
-
     JFrame cw;
+    ClientInterface myPanel;
 
     @Override
     public void run() {
         try {
-            cw = new JFrame();
+            cw = new JFrame("ChatApp");
             cw.setSize(600, 600);
+            myPanel= new ClientInterface();
+            myPanel.setMessage("nothing");
+            cw.add(myPanel);
             cw.setVisible(true);
             client = new Socket("127.0.0.1", 9999); //Creates a stream socket and connects it to the specified port number on the named host.
             out = new PrintWriter(client.getOutputStream(), true);
@@ -30,13 +33,14 @@ public class Client implements Runnable {
 
             String inMessage;
             while((inMessage = in.readLine()) != null) {
-                System.out.println(inMessage);
+                myPanel.setMessage(inMessage);
+                System.out.println("DEBUG: " + inMessage);
+
             }
         } catch (IOException e) {
             shutdown();
         }
     }
-
     public void shutdown() {
         done = true;
         try {
@@ -56,7 +60,7 @@ public class Client implements Runnable {
         @Override
         public void run() {
             try {
-                BufferedReader inReader = new BufferedReader(new InputStreamReader(System.in));
+                BufferedReader inReader = new BufferedReader(new InputStreamReader(System.in)); //Creates a buffering character-input stream that uses a default-sized input buffer.
                 while (!done) {
                     String message = inReader.readLine();
                     if (message.equals("/quit")) {
