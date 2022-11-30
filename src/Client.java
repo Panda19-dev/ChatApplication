@@ -1,3 +1,4 @@
+import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -11,9 +12,14 @@ public class Client implements Runnable {
     private PrintWriter out; //Prints formatted representations of objects to a text-output stream.
     private boolean done;
 
+    JFrame cw;
+
     @Override
     public void run() {
         try {
+            cw = new JFrame();
+            cw.setSize(600, 600);
+            cw.setVisible(true);
             client = new Socket("127.0.0.1", 9999); //Creates a stream socket and connects it to the specified port number on the named host.
             out = new PrintWriter(client.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(client.getInputStream()));
@@ -36,6 +42,7 @@ public class Client implements Runnable {
         try {
             in.close();
             out.close();
+            cw.setVisible(false);
             if(!client.isClosed()) {
                 client.close();
             }
@@ -56,7 +63,7 @@ public class Client implements Runnable {
                         out.println(message);
                         inReader.close();
                         shutdown();
-                    } else {
+                    }else {
                         out.println(message);
                     }
                 }

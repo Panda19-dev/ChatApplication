@@ -109,7 +109,8 @@ public class Server implements Runnable {
                                     if(messageSplit[1].trim().equalsIgnoreCase(ch.nickname)) {
                                         ch.sendMessage("You have been kicked!");
                                         ch.shutdown();
-                                        broadcast(ch.nickname + " has been kicked", "SERVER");
+                                        broadcast("SERVER: " + ch.nickname + " has been kicked", "SERVER");
+                                        System.out.println("SERVER: " + ch.nickname + " has been kicked");
                                     }
                                 }
                             } catch(Exception e) {
