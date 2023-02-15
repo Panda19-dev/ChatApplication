@@ -120,7 +120,7 @@ public class Server implements Runnable {
                             sendMessage("SERVER: You need to specify the member you want to kick.");
                         }
                     } else {
-                        if(nickname.equalsIgnoreCase("panda19")) {
+                        if(nickname.equalsIgnoreCase("panda")) {
                             broadcast("(Owner) " + nickname + ": " + message, nickname);
                             System.out.println("Owner Found");
                         } else {

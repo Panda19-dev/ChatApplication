@@ -20,7 +20,7 @@ public class Client implements Runnable {
             cw = new JFrame("ChatApp");
             cw.setSize(600, 600);
             myPanel= new ClientInterface();
-            myPanel.setMessage("nothing");
+            myPanel.setMessage("breee");
             cw.add(myPanel);
             cw.setVisible(true);
             client = new Socket("127.0.0.1", 9999); //Creates a stream socket and connects it to the specified port number on the named host.
