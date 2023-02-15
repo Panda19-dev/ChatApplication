@@ -1,3 +1,6 @@
+import Commands.NickCommand;
+import Handlers.CommandHandler;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -10,6 +13,7 @@ import java.util.concurrent.Executors;
 
 public class Server implements Runnable {
 
+    private CommandHandler commandHandler;
     private ArrayList<ConnectionHandler> connections;
     private ServerSocket server; //A server socket waits for requests to come in over the network. It performs some operation based on that request, and then possibly returns a result to the requester.
     private boolean done;
@@ -18,6 +22,8 @@ public class Server implements Runnable {
     public Server() { //Class constructor
         connections = new ArrayList<>(); //Initializing the arraylist
         done = false;
+        this.commandHandler = CommandHandler.getInstance();
+        this.commandHandler.addCommand(new NickCommand());
     }
 
     @Override
@@ -120,14 +126,9 @@ public class Server implements Runnable {
                             sendMessage("SERVER: You need to specify the member you want to kick.");
                         }
                     } else {
-                        if(nickname.equalsIgnoreCase("panda")) {
-                            broadcast("(Owner) " + nickname + ": " + message, nickname);
-                            System.out.println("Owner Found");
-                        } else {
                             broadcast(nickname + ": " + message, nickname);
                         }
                     }
-                }
             } catch (IOException e) {
                 shutdown();
             }
