@@ -1,3 +1,5 @@
+package Main;
+
 import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -11,18 +13,10 @@ public class Client implements Runnable {
     private BufferedReader in;  //Reads text from a character-input stream, buffering characters to provide for the efficient reading of characters, arrays, and lines.
     private PrintWriter out; //Prints formatted representations of objects to a text-output stream.
     private boolean done;
-    JFrame cw;
-    ClientInterface myPanel;
 
     @Override
     public void run() {
         try {
-            cw = new JFrame("ChatApp");
-            cw.setSize(600, 600);
-            myPanel= new ClientInterface();
-            myPanel.setMessage("breee");
-            cw.add(myPanel);
-            cw.setVisible(true);
             client = new Socket("127.0.0.1", 9999); //Creates a stream socket and connects it to the specified port number on the named host.
             out = new PrintWriter(client.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(client.getInputStream()));
@@ -33,9 +27,7 @@ public class Client implements Runnable {
 
             String inMessage;
             while((inMessage = in.readLine()) != null) {
-                myPanel.setMessage(inMessage);
                 System.out.println("DEBUG: " + inMessage);
-
             }
         } catch (IOException e) {
             shutdown();
@@ -46,7 +38,6 @@ public class Client implements Runnable {
         try {
             in.close();
             out.close();
-            cw.setVisible(false);
             if(!client.isClosed()) {
                 client.close();
             }
