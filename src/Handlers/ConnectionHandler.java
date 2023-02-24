@@ -17,6 +17,7 @@ public class ConnectionHandler implements Runnable {
     private PrintWriter out;
     private String nickname;
     private CommandHandler commandHandler;
+    private boolean kicked;
 
     private Server server;
 
@@ -67,7 +68,9 @@ public class ConnectionHandler implements Runnable {
     }
 
     public void sendMessage(String message) {
-        out.println(message);
+        if(!kicked) {
+            out.println(message);
+        }
     }
 
     public void broadcast(String message, String sender) {
@@ -77,6 +80,16 @@ public class ConnectionHandler implements Runnable {
             }
         }
     }
+
+    public void kick() {
+        kicked = true;
+        try {
+            client.close();
+        } catch (IOException e) {
+            // ignore
+        }
+    }
+
 
     public void shutdown() {
         try {

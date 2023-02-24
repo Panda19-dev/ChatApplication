@@ -1,5 +1,6 @@
 package Main;
 
+import Commands.KickCommand;
 import Commands.NickCommand;
 import Handlers.CommandHandler;
 import Handlers.ConnectionHandler;
@@ -38,6 +39,7 @@ public class Server {
                 connections.add(connectionHandler);
                 pool.execute(connectionHandler);
                 this.commandHandler.addCommand(new NickCommand(connectionHandler));
+                this.commandHandler.addCommand(new KickCommand(this));
             }
         } catch (IOException e) {
             System.out.println("Server exception: " + e.getMessage());
@@ -51,6 +53,15 @@ public class Server {
 
     public ArrayList<ConnectionHandler> getConnections() {
         return connections;
+    }
+
+
+    public void removeConnection(ConnectionHandler connection) {
+        connections.remove(connection); // Remove the connection from the list of connections
+
+        // Optionally, you could also send a message to the remaining clients to inform them that someone has left the chat
+        String message = connection.getNickname() + " has left the chat.";
+        connectionHandler.broadcast(message, "Server");
     }
 
     public static void main(String[] args) {
