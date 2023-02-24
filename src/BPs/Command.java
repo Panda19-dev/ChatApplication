@@ -2,7 +2,7 @@ package BPs;
 
 import Exceptions.InvalidCommandArgumentException;
 
-public abstract class Command {
+public abstract class Command { //Abstract due to the abstract method
     private String name;
 
     public Command(String name) {
