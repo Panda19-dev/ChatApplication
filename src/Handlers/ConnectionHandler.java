@@ -38,7 +38,7 @@ public class ConnectionHandler implements Runnable {
             System.out.println(nickname + " connected!");
             broadcast(nickname + " joined the chat!", nickname);
             String message;
-            while ((message = in.readLine()) != null && !message.equals("")) {
+            while ((message = in.readLine()) != null && !message.isEmpty() && !message.isBlank()) {
                 if (message.startsWith(prefix)) {
                     String[] messageSplit = message.split(" ");
                     String commandName = messageSplit[0].substring(prefix.length());
