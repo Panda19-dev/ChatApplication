@@ -27,7 +27,7 @@ public class Client implements Runnable {
 
             String inMessage;
             while((inMessage = in.readLine()) != null) {
-                System.out.println("DEBUG: " + inMessage);
+                System.out.println(inMessage);
             }
         } catch (IOException e) {
             shutdown();

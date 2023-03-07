@@ -9,7 +9,7 @@ public class NickCommand extends Command {
     private ConnectionHandler connectionHandler;
 
     public NickCommand(ConnectionHandler connectionHandler) {
-        super("Nick");
+        super("nick");
         this.connectionHandler = connectionHandler;
     }
 

@@ -34,7 +34,7 @@ public class CommandHandler {
     public void executeCommand(String commandName, String[] args) throws CommandNotFoundException, InvalidCommandArgumentException {
 
         // Get the Command object from the HashMap using the command name as the key
-        Command command = this.commands.get(commandName);
+        Command command = this.commands.get(commandName.toLowerCase());
 
         // If the Command object is not null (i.e., the command exists), execute the command with the provided arguments
         if (command != null) {

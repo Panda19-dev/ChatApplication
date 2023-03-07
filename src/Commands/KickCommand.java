@@ -8,7 +8,7 @@ import Main.Server;
 public class KickCommand extends Command {
     private Server server;
     public KickCommand(Server server) {
-        super("Kick");
+        super("kick");
         this.server = server;
     }
 
