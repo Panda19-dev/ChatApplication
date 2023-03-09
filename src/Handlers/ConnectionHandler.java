@@ -12,27 +12,26 @@ import java.net.Socket;
 
 public class ConnectionHandler implements Runnable {
 
-    private Socket client;
-    private BufferedReader in;
-    private PrintWriter out;
+    private final Socket client;
+    private final BufferedReader in;
+    private final PrintWriter out;
     private String nickname;
-    private CommandHandler commandHandler;
+    private final CommandHandler commandHandler;
     private boolean kicked;
+    private final Server server;
 
-    private Server server;
-
-    public ConnectionHandler(Socket client, CommandHandler commandHandler, Server server) {
+    public ConnectionHandler(Socket client, CommandHandler commandHandler, Server server) throws IOException {
         this.client = client;
         this.commandHandler = commandHandler;
         this.server = server;
+        out = new PrintWriter(client.getOutputStream(), true); //Initializing writer
+        in = new BufferedReader(new InputStreamReader(client.getInputStream())); //Initializing reader
     }
 
     @Override
     public void run() {
         try {
             String prefix = "/"; // THE PREFIX FOR ALL COMMANDS
-            out = new PrintWriter(client.getOutputStream(), true); //Initializing writer
-            in = new BufferedReader(new InputStreamReader(client.getInputStream())); //Initializing reader
             out.println("Please enter a nickname: ");
             nickname = in.readLine();
             System.out.println(nickname + " connected!");
@@ -75,10 +74,8 @@ public class ConnectionHandler implements Runnable {
 
     public void broadcast(String message, String sender) {
         for (ConnectionHandler ch : server.getConnections()) {
-            if(ch.nickname != null) {
-                if (!ch.nickname.equalsIgnoreCase(sender)) {
-                    ch.sendMessage(message);
-                }
+            if (!ch.equals(this) && ch.getNickname() != null) {
+                ch.sendMessage(sender + ": " + message);
             }
         }
     }
