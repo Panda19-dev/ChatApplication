@@ -44,4 +44,7 @@ public class CommandHandler {
             throw new CommandNotFoundException("Command not found.");
         }
     }
+    public HashMap<String, Command> getCommands() {
+        return commands;
+    }
 }

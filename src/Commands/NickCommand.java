@@ -11,6 +11,8 @@ public class NickCommand extends Command {
     public NickCommand(ConnectionHandler connectionHandler) {
         super("nick");
         this.connectionHandler = connectionHandler;
+        this.usage = "/Nick <nickname>";
+        this.desc = "Changes your nickname";
     }
 
 

@@ -1,13 +1,11 @@
 package Main;
 
+import Commands.HelpCommand;
 import Commands.KickCommand;
 import Commands.NickCommand;
+import Discord.Bot;
 import Handlers.CommandHandler;
 import Handlers.ConnectionHandler;
-import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.JDABuilder;
-import net.dv8tion.jda.api.entities.Activity;
-import net.dv8tion.jda.api.utils.cache.CacheFlag;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -22,8 +20,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class Server {
-
-    JDA jda = JDABuilder.createDefault("Nzg5NDg4NTY4NDgwOTU2NDE2.Gi2-_N.5M_7_iRtmT7lq1dJdo51ccOF99m-7TOggxrmNo").build();
     private ArrayList<ConnectionHandler> connections;
 
     private CommandHandler commandHandler;
@@ -38,7 +34,7 @@ public class Server {
     }
 
     public void start(int port) {
-        /*
+        /* FILE
         try {
             config = new File("config.yml");
             if (config.createNewFile()) {
@@ -86,6 +82,7 @@ public class Server {
                 pool.execute(connectionHandler);
                 this.commandHandler.addCommand(new NickCommand(connectionHandler));
                 this.commandHandler.addCommand(new KickCommand(this));
+                this.commandHandler.addCommand(new HelpCommand(this, commandHandler, connectionHandler));
             }
         } catch (IOException e) {
             System.out.println("Server exception: " + e.getMessage());
@@ -111,16 +108,14 @@ public class Server {
     }
 
     public static void main(String[] args) {
-        JDABuilder builder = JDABuilder.createDefault("Nzg5NDg4NTY4NDgwOTU2NDE2.Gi2-_N.5M_7_iRtmT7lq1dJdo51ccOF99m-7TOggxrmNo");
+        /*
+        try {
+            Bot bot = new Bot();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
-        // Disable parts of the cache
-        builder.disableCache(CacheFlag.MEMBER_OVERRIDES, CacheFlag.VOICE_STATE);
-        // Enable the bulk delete event
-        builder.setBulkDeleteSplittingEnabled(false);
-        // Set activity (like "playing Something")
-        builder.setActivity(Activity.playing("your mom"));
-
-        builder.build();
+         */
 
         Server server = new Server();
         server.start(9999);

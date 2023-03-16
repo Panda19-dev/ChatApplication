@@ -10,6 +10,8 @@ public class KickCommand extends Command {
     public KickCommand(Server server) {
         super("kick");
         this.server = server;
+        this.usage = "/kick <nickname>";
+        this.desc = "Kicks a specific person from the chat.";
     }
 
     @Override
