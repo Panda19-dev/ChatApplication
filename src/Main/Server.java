@@ -19,7 +19,7 @@ import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class Server {
+public class Server { // Main frame, the heart and the base of the program.
     private ArrayList<ConnectionHandler> connections;
 
     private CommandHandler commandHandler;
@@ -28,12 +28,12 @@ public class Server {
     private ConnectionHandler connectionHandler;
     private File config;
 
-    public Server() {
+    public Server() { // Constructor
         this.connections = new ArrayList<>();
         this.commandHandler = new CommandHandler();
     }
 
-    public void start(int port) {
+    public void start(int port) { // Method that runs the entire Server
         /* FILE
         try {
             config = new File("config.yml");
@@ -71,7 +71,7 @@ public class Server {
          */
 
         try (ServerSocket serverSocket = new ServerSocket(port)) {
-            pool = Executors.newCachedThreadPool(); //Initializing pool
+            pool = Executors.newCachedThreadPool(); //Initializing pool that will make it possible to have multiple clients connected.
             System.out.println("Server is listening on port " + port);
 
             while (true) {
@@ -92,14 +92,14 @@ public class Server {
 
     public void removeHandler(ConnectionHandler handler) {
         connections.remove(handler);
-    }
+    } // Removes a connectionHandler
 
     public ArrayList<ConnectionHandler> getConnections() {
         return connections;
-    }
+    } // returns the list of connectionhandlers.
 
 
-    public void removeConnection(ConnectionHandler connection) {
+    public void removeConnection(ConnectionHandler connection) { //Removes a connection (player) from the server.
         connections.remove(connection); // Remove the connection from the list of connections
 
         // Optionally, you could also send a message to the remaining clients to inform them that someone has left the chat
@@ -107,7 +107,7 @@ public class Server {
         connectionHandler.broadcast(message, "Server");
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) { // Start method that is started by the green arrow.
         /*
         try {
             Bot bot = new Bot();

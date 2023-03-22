@@ -15,7 +15,7 @@ public class Client implements Runnable {
     private boolean done;
 
     @Override
-    public void run() {
+    public void run() { // method that is called when client class is starting.
         try {
             client = new Socket("127.0.0.1", 9999); //Creates a stream socket and connects it to the specified port number on the named host.
             out = new PrintWriter(client.getOutputStream(), true);
@@ -33,7 +33,7 @@ public class Client implements Runnable {
             shutdown();
         }
     }
-    public void shutdown() {
+    public void shutdown() { // method that is called when client is disconnecting.
         done = true;
         try {
             in.close();
@@ -46,10 +46,10 @@ public class Client implements Runnable {
         }
     }
 
-    class InputHandler implements Runnable {
+    class InputHandler implements Runnable { // Handels input (messages) from a client.
 
         @Override
-        public void run() {
+        public void run() { // Method that is called when a client is sending a message
             try {
                 BufferedReader inReader = new BufferedReader(new InputStreamReader(System.in)); //Creates a buffering character-input stream that uses a default-sized input buffer.
                 while (!done) {

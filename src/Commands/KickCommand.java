@@ -5,7 +5,7 @@ import Exceptions.InvalidCommandArgumentException;
 import Handlers.ConnectionHandler;
 import Main.Server;
 
-public class KickCommand extends Command {
+public class KickCommand extends Command { // A command class that kicks/removes a specific player from the server.
     private Server server;
     public KickCommand(Server server) {
         super("kick");
@@ -15,7 +15,7 @@ public class KickCommand extends Command {
     }
 
     @Override
-    public void execute(String[] args) throws InvalidCommandArgumentException {
+    public void execute(String[] args) throws InvalidCommandArgumentException { // Method that originates from the command class that is used when command is called.
         if (args.length < 1) {
             throw new InvalidCommandArgumentException("Usage: /kick <nickname>");
         }

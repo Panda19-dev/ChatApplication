@@ -9,7 +9,7 @@ import Main.Server;
 import java.util.Arrays;
 import java.util.HashMap;
 
-public class HelpCommand extends Command {
+public class HelpCommand extends Command { // The help command class, displays all commands that is working.
 
     private Server server;
     private CommandHandler commandHandler;
@@ -26,7 +26,7 @@ public class HelpCommand extends Command {
     }
 
     @Override
-    public void execute(String[] args) throws InvalidCommandArgumentException {
+    public void execute(String[] args) throws InvalidCommandArgumentException { //The execute method that originates from the abstract command class that is used when command is used.
         int i = 0;
          for (Command command : commandHandler.getCommands().values()) {
              i++;

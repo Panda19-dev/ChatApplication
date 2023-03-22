@@ -20,7 +20,7 @@ public class ConnectionHandler implements Runnable {
     private boolean kicked;
     private final Server server;
 
-    public ConnectionHandler(Socket client, CommandHandler commandHandler, Server server) throws IOException {
+    public ConnectionHandler(Socket client, CommandHandler commandHandler, Server server) throws IOException { // Constructor
         this.client = client;
         this.commandHandler = commandHandler;
         this.server = server;
@@ -29,7 +29,7 @@ public class ConnectionHandler implements Runnable {
     }
 
     @Override
-    public void run() {
+    public void run() { // Method that is called when the connectionhandler class is runned.
         try {
             String prefix = "/"; // THE PREFIX FOR ALL COMMANDS
             out.println("Please enter a nickname: ");
@@ -60,19 +60,19 @@ public class ConnectionHandler implements Runnable {
 
     public String getNickname() {
       return nickname;
-    }
+    } // Get the nickname
 
     public void setNickname(String nickname) {
         this.nickname = nickname;
-    }
+    } //Changes nickname
 
-    public void sendMessage(String message) {
+    public void sendMessage(String message) { //Sends a message
         if(!kicked) {
             out.println(message);
         }
     }
 
-    public void broadcast(String message, String sender) {
+    public void broadcast(String message, String sender) { // Broadcasts a message to all clients connected except the sender.
         for (ConnectionHandler ch : server.getConnections()) {
             if (!ch.equals(this) && ch.getNickname() != null) {
                 ch.sendMessage(sender + ": " + message);
@@ -80,7 +80,7 @@ public class ConnectionHandler implements Runnable {
         }
     }
 
-    public void kick() {
+    public void kick() { // Closes the client
         kicked = true;
         try {
             client.close();
@@ -90,7 +90,7 @@ public class ConnectionHandler implements Runnable {
     }
 
 
-    public void shutdown() {
+    public void shutdown() { // Method that is called when a client is disconnecting from the server
         try {
             in.close();
             out.close();
