@@ -70,7 +70,6 @@ public class ConnectionHandler implements Runnable {
         }
     }
 
-
     public String getNickname() {
         return nickname;
     } // Get the nickname

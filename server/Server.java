@@ -1,9 +1,6 @@
 package server;
 
-import models.commands.HelpCommand;
-import models.commands.KickCommand;
-import models.commands.NickCommand;
-import models.commands.QuitCommand;
+import models.commands.*;
 import models.handlers.CommandHandler;
 import models.handlers.ConnectionHandler;
 
@@ -34,6 +31,7 @@ public class Server {
             System.out.println("Server is listening on port " + port);
 
             // Register commands only once outside the loop
+            commandHandler.addCommand(new PrivateMessageCommand(this));
             commandHandler.addCommand(new NickCommand());
             commandHandler.addCommand(new KickCommand(this));
             commandHandler.addCommand(new HelpCommand(commandHandler));
@@ -50,6 +48,15 @@ public class Server {
             System.out.println("Server exception: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    public ConnectionHandler findHandlerByNickname(String nickname) {
+        for (ConnectionHandler handler : connections) {
+            if (handler.getNickname().equals(nickname)) {
+                return handler;
+            }
+        }
+        return null; // Not found
     }
 
     public void removeHandler(ConnectionHandler handler) {
