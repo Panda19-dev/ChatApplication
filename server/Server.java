@@ -8,20 +8,22 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class Server {
 
     private final ArrayList<ConnectionHandler> connections;
-
+    private final HashMap<String, ArrayList<ConnectionHandler>> groups; // Map to store groups and their members
     private final CommandHandler commandHandler;
-
     private ExecutorService pool;
+
     private ConnectionHandler connectionHandler;
 
     public Server() {
         this.connections = new ArrayList<>();
+        groups = new HashMap<>();
         this.commandHandler = CommandHandler.getInstance();  // Use the singleton instance
     }
 
