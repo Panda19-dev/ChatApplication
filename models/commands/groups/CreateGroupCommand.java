@@ -31,8 +31,9 @@ public class CreateGroupCommand extends Command {
         // Attempt to create the group
         if (!server.createGroup(groupName, invokingHandler)) {
             invokingHandler.sendMessage("Server: Group creation failed. The group may already exist.");
-        } else {
-            invokingHandler.sendMessage("Server: Group '" + groupName + "' created successfully.");
         }
+        //else {
+        //    invokingHandler.sendMessage("Server: Group '" + groupName + "' created successfully.");
+        //}
     }
 }
