@@ -21,7 +21,18 @@ public class JoinGroupCommand extends Command {
             throw new InvalidCommandArgumentException("Usage: " + usage);
         }
 
-        String groupName = args[0]; // Get the group name from args
-        server.joinGroup(groupName, invokingHandler); // Call the joinGroup method
+        String groupName = args[0];
+
+        // Validate the group name (e.g., ensure it's not empty and follows some criteria)
+        if (groupName.isEmpty() || groupName.length() > 30 || !groupName.matches("[a-zA-Z0-9_-]+")) {
+            throw new InvalidCommandArgumentException("Invalid group name. Group names must be alphanumeric and can contain underscores or dashes, with a max length of 30 characters.");
+        }
+
+        // Attempt to join the group
+        if (!server.joinGroup(groupName, invokingHandler)) {
+            invokingHandler.sendMessage("Server: Failed to join group. The group may not exist, or you are already a member.");
+        } else {
+            invokingHandler.sendMessage("Server: Successfully joined the group '" + groupName + "'.");
+        }
     }
 }

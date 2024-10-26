@@ -5,6 +5,8 @@ import models.handlers.ConnectionHandler;
 import server.Server;
 import utils.exceptions.InvalidCommandArgumentException;
 
+import java.util.List;
+
 public class LeaveGroupCommand extends Command {
     private final Server server;
 
@@ -17,11 +19,17 @@ public class LeaveGroupCommand extends Command {
 
     @Override
     public void execute(String[] args, ConnectionHandler invokingHandler) throws InvalidCommandArgumentException {
-        if (args.length != 1) { // Expecting one argument: the group name
+        if (args.length != 1) {
             throw new InvalidCommandArgumentException("Usage: " + usage);
         }
 
-        String groupName = args[0]; // Get the group name from args
-        server.leaveGroup(groupName, invokingHandler); // Pass both groupName and invokingHandler
+        String groupName = args[0];
+
+        // Attempt to leave the group
+        if (!server.leaveGroup(groupName, invokingHandler)) {
+            invokingHandler.sendMessage("Server: Unable to leave the group. Please ensure the group exists and that you are a member.");
+        } else {
+            invokingHandler.sendMessage("Server: Successfully left the group '" + groupName + "'.");
+        }
     }
 }

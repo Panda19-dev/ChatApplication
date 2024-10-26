@@ -20,8 +20,19 @@ public class CreateGroupCommand extends Command {
         if (args.length != 1) {
             throw new InvalidCommandArgumentException("Usage: " + usage);
         }
+
         String groupName = args[0];
-        server.createGroup(groupName, invokingHandler);
-        invokingHandler.sendMessage("Group '" + groupName + "' created successfully.");
+
+        // Validate the group name (e.g., ensure it's not empty and follows some criteria)
+        if (groupName.isEmpty() || groupName.length() > 30 || !groupName.matches("[a-zA-Z0-9_-]+")) {
+            throw new InvalidCommandArgumentException("Invalid group name. Group names must be alphanumeric and can contain underscores or dashes, with a max length of 30 characters.");
+        }
+
+        // Attempt to create the group
+        if (!server.createGroup(groupName, invokingHandler)) {
+            invokingHandler.sendMessage("Server: Group creation failed. The group may already exist.");
+        } else {
+            invokingHandler.sendMessage("Server: Group '" + groupName + "' created successfully.");
+        }
     }
 }
