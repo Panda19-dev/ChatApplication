@@ -9,8 +9,11 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ConnectionHandler implements Runnable {
+    private static final Logger logger = Logger.getLogger(ConnectionHandler.class.getName());
     private final Socket client;
     private final BufferedReader in;
     private final PrintWriter out;
@@ -18,22 +21,20 @@ public class ConnectionHandler implements Runnable {
     private final CommandHandler commandHandler;
     private boolean kicked;
     private final Server server;
-    private boolean running; // Add this flag
+    private volatile boolean running; // Use volatile for thread safety
 
-    public ConnectionHandler(Socket client, CommandHandler commandHandler, Server server) throws IOException { // Constructor
+    public ConnectionHandler(Socket client, CommandHandler commandHandler, Server server) throws IOException {
         this.client = client;
         this.commandHandler = commandHandler;
         this.server = server;
-        out = new PrintWriter(client.getOutputStream(), true); //Initializing writer
-        in = new BufferedReader(new InputStreamReader(client.getInputStream())); //Initializing reader
+        out = new PrintWriter(client.getOutputStream(), true); // Initialize writer
+        in = new BufferedReader(new InputStreamReader(client.getInputStream())); // Initialize reader
         this.running = true; // Set the flag to true initially
     }
 
-    // Adjust the exception handling in the run() method
     @Override
     public void run() {
         try {
-            String prefix = "/";
             out.println("Please enter a nickname: ");
             nickname = in.readLine();
 
@@ -41,28 +42,17 @@ public class ConnectionHandler implements Runnable {
                 throw new InvalidCommandArgumentException("Invalid nickname. Please provide a valid nickname.");
             }
 
-            System.out.println(nickname + " connected!");
+            logger.info(nickname + " connected!");
             broadcastAsServer(nickname + " joined the chat!");
 
             String message;
             while (running && (message = in.readLine()) != null) {
                 if (!message.isBlank()) {
-                    if (message.startsWith(prefix)) {
-                        String[] messageSplit = message.split(" ");
-                        String commandName = messageSplit[0].substring(prefix.length());
-                        String[] commandArgs = new String[messageSplit.length - 1];
-                        System.arraycopy(messageSplit, 1, commandArgs, 0, commandArgs.length);
-                        try {
-                            commandHandler.executeCommand(commandName, commandArgs, this);
-                        } catch (CommandNotFoundException | InvalidCommandArgumentException e) {
-                            sendMessage("SERVER: " + e.getMessage());
-                        }
-                    } else {
-                        broadcast(message, nickname);
-                    }
+                    processMessage(message);
                 }
             }
         } catch (IOException e) {
+            logger.log(Level.WARNING, "Connection error: " + e.getMessage(), e);
             shutdown();
         } catch (InvalidCommandArgumentException e) {
             sendMessage(e.getMessage());
@@ -70,21 +60,37 @@ public class ConnectionHandler implements Runnable {
         }
     }
 
+    private void processMessage(String message) {
+        String prefix = "/";
+        if (message.startsWith(prefix)) {
+            String[] messageSplit = message.split(" ");
+            String commandName = messageSplit[0].substring(prefix.length());
+            String[] commandArgs = new String[messageSplit.length - 1];
+            System.arraycopy(messageSplit, 1, commandArgs, 0, commandArgs.length);
+            try {
+                commandHandler.executeCommand(commandName, commandArgs, this);
+            } catch (CommandNotFoundException | InvalidCommandArgumentException e) {
+                sendMessage("SERVER: " + e.getMessage());
+            }
+        } else {
+            broadcast(message, nickname);
+        }
+    }
+
     public String getNickname() {
         return nickname;
-    } // Get the nickname
+    }
 
     public void setNickname(String nickname) {
         this.nickname = nickname;
-    } //Changes nickname
+    }
 
-    public void sendMessage(String message) { //Sends a message
-        if(!kicked) {
+    public void sendMessage(String message) {
+        if (!kicked) {
             out.println(message);
         }
     }
 
-    // Broadcast with a specific sender (used for regular chat messages)
     public void broadcast(String message, String sender) {
         for (ConnectionHandler ch : server.getConnections()) {
             if (ch.getNickname() != null && !ch.getNickname().isBlank()) {
@@ -93,7 +99,6 @@ public class ConnectionHandler implements Runnable {
         }
     }
 
-    // Broadcast as the server (used for system messages like kicks or disconnects)
     public void broadcastAsServer(String message) {
         for (ConnectionHandler ch : server.getConnections()) {
             if (ch.getNickname() != null && !ch.getNickname().isBlank()) {
@@ -102,12 +107,12 @@ public class ConnectionHandler implements Runnable {
         }
     }
 
-    public void kick() { // Closes the client
+    public void kick() {
         kicked = true;
         try {
             client.close();
         } catch (IOException e) {
-            // ignore
+            logger.log(Level.WARNING, "Error closing client socket: " + e.getMessage(), e);
         }
     }
 
@@ -121,9 +126,9 @@ public class ConnectionHandler implements Runnable {
             }
             server.removeHandler(this);
             broadcastAsServer(nickname + " left the chat.");
-            System.out.println(nickname + " disconnected!");
+            logger.info(nickname + " disconnected!");
         } catch (IOException e) {
-            // ignore
+            logger.log(Level.WARNING, "Error during shutdown: " + e.getMessage(), e);
         }
     }
 }
