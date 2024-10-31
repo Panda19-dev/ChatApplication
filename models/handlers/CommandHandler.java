@@ -5,9 +5,11 @@ import utils.exceptions.CommandNotFoundException;
 import utils.exceptions.InvalidCommandArgumentException;
 
 import java.util.HashMap;
+import java.util.logging.Logger;
 
 public class CommandHandler {
 
+    private static final Logger logger = Logger.getLogger(CommandHandler.class.getName());
     private static CommandHandler instance = null;
     private final HashMap<String, Command> commands;
 
@@ -38,8 +40,10 @@ public class CommandHandler {
             throws CommandNotFoundException, InvalidCommandArgumentException {
         Command command = commands.get(commandName);
         if (command == null) {
-            throw new CommandNotFoundException("Command not found: " + commandName);
+            String errorMessage = "Command not found: " + commandName;
+            logger.warning(errorMessage);
+            throw new CommandNotFoundException(errorMessage);
         }
-        command.execute(args, invokingHandler); // Pass the invoking ConnectionHandler to the command
+        command.execute(args, invokingHandler);
     }
 }

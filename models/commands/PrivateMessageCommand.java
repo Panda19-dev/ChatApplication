@@ -33,6 +33,6 @@ public class PrivateMessageCommand extends Command {
         }
 
         targetHandler.sendMessage("PM from " + invokingHandler.getNickname() + ": " + message);
-        invokingHandler.sendMessage("You: " + message + " (to " + targetNickname + ")");
+        //invokingHandler.sendMessage("You: " + message + " (to " + targetNickname + ")");
     }
 }
