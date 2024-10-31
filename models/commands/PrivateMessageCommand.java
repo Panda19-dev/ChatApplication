@@ -32,7 +32,7 @@ public class PrivateMessageCommand extends Command {
             throw new InvalidCommandArgumentException("User not found: " + targetNickname);
         }
 
-        targetHandler.sendMessage("Private message from " + invokingHandler.getNickname() + ": " + message);
+        targetHandler.sendMessage("PM from " + invokingHandler.getNickname() + ": " + message);
         invokingHandler.sendMessage("You: " + message + " (to " + targetNickname + ")");
     }
 }

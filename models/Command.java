@@ -15,6 +15,7 @@ public abstract class Command {
     public String getName() {
         return this.name;
     }
+
     public String getDesc() { return this.desc; }
     public String getUsage() { return this.usage; }
 
