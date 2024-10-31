@@ -73,9 +73,9 @@ public class ClientGUI {
                     if (message.startsWith("PM from")) {
                         int senderEndIndex = message.indexOf(":");
                         if (senderEndIndex != -1) {
-                            String sender = message.substring(8, senderEndIndex).trim(); // Extract sender name after "PM from" and before ":"
-                            String privateMessage = message.substring(senderEndIndex + 1).trim(); // Extract the actual message content
-                            openPrivateChatWindow(sender, privateMessage);
+                            String sender = message.substring(8, senderEndIndex).trim(); // Extract sender name
+                            String privateMessage = message.substring(senderEndIndex + 1).trim(); // Extract message content
+                            openPrivateChatWindow(sender, privateMessage); // Call the method to open the chat window
                         }
                     } else {
                         messageArea.append(message + "\n");
@@ -117,10 +117,13 @@ public class ClientGUI {
     // Open or update a private chat window with a given user
     private void openPrivateChatWindow(String username, String message) {
         SwingUtilities.invokeLater(() -> {
-            String trimmedUsername = username.trim(); // New variable for trimmed username
-            String trimmedMessage = message.trim(); // New variable for trimmed message
+            String trimmedUsername = username.trim();
+            String trimmedMessage = message.trim();
+
+            System.out.println("Opening private chat with: " + trimmedUsername);
             PrivateChatWindow chatWindow = privateChats.get(trimmedUsername);
             if (chatWindow == null) {
+                System.out.println("Creating new chat window for: " + trimmedUsername);
                 chatWindow = new PrivateChatWindow(trimmedUsername, out);
                 privateChats.put(trimmedUsername, chatWindow);
             }

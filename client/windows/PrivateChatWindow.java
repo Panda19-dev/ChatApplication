@@ -17,36 +17,39 @@ public class PrivateChatWindow {
         this.partner = partner;
         this.out = out;
 
+        // Initialize components
         frame = new JFrame("Private Chat with " + partner);
-        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Allow window to be closed
         messageArea = new JTextArea(20, 30);
-        messageArea.setEditable(false);
+        inputField = new JTextField(30);
+        JButton sendButton = new JButton("Send");
 
-        // Layout setup
+        // Set up the message area
+        messageArea.setEditable(false);
         frame.setLayout(new BorderLayout());
         frame.add(new JScrollPane(messageArea), BorderLayout.CENTER);
 
+        // Set up the input panel
         JPanel inputPanel = new JPanel();
         inputPanel.setLayout(new BorderLayout());
         inputPanel.add(inputField, BorderLayout.CENTER);
-
-        JButton sendButton = new JButton("Send");
-        sendButton.addActionListener(e -> sendMessage());
-        inputField.addActionListener(e -> sendMessage());
         inputPanel.add(sendButton, BorderLayout.EAST);
-
         frame.add(inputPanel, BorderLayout.SOUTH);
 
+        // Add action listeners
+        sendButton.addActionListener(e -> sendMessage());
+        inputField.addActionListener(e -> sendMessage());
+
+        // Finalize the frame setup
         frame.pack();
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Close only this window
         frame.setVisible(true);
     }
 
     private void sendMessage() {
         String message = inputField.getText();
         if (!message.isBlank()) {
-            String timestampedMessage = "[" + new SimpleDateFormat("HH:mm:ss").format(new Date()) + "] You: " + message;
             out.println("/pm " + partner + " " + message);
-            displayMessage(timestampedMessage);
+            displayMessage("You: " + message);
             inputField.setText("");
         }
     }
