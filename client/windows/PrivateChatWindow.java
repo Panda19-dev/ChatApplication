@@ -3,8 +3,6 @@ package client.windows;
 import javax.swing.*;
 import java.awt.*;
 import java.io.PrintWriter;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 public class PrivateChatWindow {
     private JFrame frame;
