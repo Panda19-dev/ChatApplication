@@ -4,11 +4,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.*;
 import java.net.Socket;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import client.windows.PrivateChatWindow;
+import models.handlers.PrivateChatHandler;
 
 public class ClientGUI {
     private static final Logger logger = Logger.getLogger(ClientGUI.class.getName());
@@ -20,8 +18,7 @@ public class ClientGUI {
     private JTextField inputField;
     private volatile boolean done;
 
-    // Map to keep track of private chat windows by username
-    private final Map<String, PrivateChatWindow> privateChats = new HashMap<>();
+    private PrivateChatHandler privateChatHandler; // Instance of PrivateChatHandler
 
     public ClientGUI(String serverAddress, int port) {
         setupUI();
@@ -31,6 +28,7 @@ public class ClientGUI {
             client = new Socket(serverAddress, port);
             out = new PrintWriter(client.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(client.getInputStream()));
+            privateChatHandler = new PrivateChatHandler(out); // Initialize the chat handler
 
             new Thread(new IncomingReader()).start();
             logger.info("Connected to the server at " + serverAddress + ":" + port);
@@ -74,7 +72,7 @@ public class ClientGUI {
                         if (senderEndIndex != -1) {
                             String sender = message.substring(8, senderEndIndex).trim(); // Extract sender name
                             String privateMessage = message.substring(senderEndIndex + 1).trim(); // Extract message content
-                            openPrivateChatWindow(sender, privateMessage); // Call the method to open the chat window
+                            privateChatHandler.displayMessage(sender, privateMessage); // Call the handler to display the message
                         }
                     } else {
                         messageArea.append(message + "\n");
@@ -111,23 +109,6 @@ public class ClientGUI {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
         frame.setVisible(true);
-    }
-
-    // Open or update a private chat window with a given user
-    private void openPrivateChatWindow(String username, String message) {
-        SwingUtilities.invokeLater(() -> {
-            String trimmedUsername = username.trim();
-            String trimmedMessage = message.trim();
-
-            System.out.println("Opening private chat with: " + trimmedUsername);
-            PrivateChatWindow chatWindow = privateChats.get(trimmedUsername);
-            if (chatWindow == null) {
-                System.out.println("Creating new chat window for: " + trimmedUsername);
-                chatWindow = new PrivateChatWindow(trimmedUsername, out);
-                privateChats.put(trimmedUsername, chatWindow);
-            }
-            chatWindow.displayMessage("PM from " + trimmedUsername + ": " + trimmedMessage);
-        });
     }
 
     public static void main(String[] args) {

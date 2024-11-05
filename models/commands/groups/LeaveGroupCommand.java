@@ -5,8 +5,6 @@ import models.handlers.ConnectionHandler;
 import server.Server;
 import utils.exceptions.InvalidCommandArgumentException;
 
-import java.util.List;
-
 public class LeaveGroupCommand extends Command {
     private final Server server;
 
