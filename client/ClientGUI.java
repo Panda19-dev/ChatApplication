@@ -19,11 +19,21 @@ public class ClientGUI {
     private volatile boolean done;
 
     private PrivateChatHandler privateChatHandler; // Instance of PrivateChatHandler
+    private final String serverAddress;
+    private final int port;
 
     public ClientGUI(String serverAddress, int port) {
-        setupUI();
+        this.serverAddress = serverAddress;
+        this.port = port;
 
-        // Connect to the server
+        setupUI();
+        connectToServer();
+
+        // Shutdown hook to ensure cleanup
+        Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown));
+    }
+
+    private void connectToServer() {
         try {
             client = new Socket(serverAddress, port);
             out = new PrintWriter(client.getOutputStream(), true);
@@ -34,27 +44,28 @@ public class ClientGUI {
             logger.info("Connected to the server at " + serverAddress + ":" + port);
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Connection error: " + e.getMessage(), e);
+            showErrorMessage("Unable to connect to server. Please try again later.");
             shutdown();
         }
     }
 
     // Send message to the server
     private void sendMessage() {
-        String message = inputField.getText();
-        if (!message.isBlank()) {
+        String message = inputField.getText().trim();
+        if (!message.isEmpty()) {
             out.println(message);
             inputField.setText(""); // Clear the input field
         }
     }
 
-    // Close resources
+    // Graceful shutdown of the client
     private void shutdown() {
         done = true;
         try {
             if (in != null) in.close();
             if (out != null) out.close();
             if (client != null && !client.isClosed()) client.close();
-            logger.info("Client resources closed successfully.");
+            logger.info("Client disconnected and resources closed.");
         } catch (IOException e) {
             logger.log(Level.WARNING, "Error during shutdown: " + e.getMessage(), e);
         }
@@ -67,23 +78,49 @@ public class ClientGUI {
             String message;
             try {
                 while (!done && (message = in.readLine()) != null) {
-                    if (message.startsWith("PM from")) {
-                        int senderEndIndex = message.indexOf(":");
-                        if (senderEndIndex != -1) {
-                            String sender = message.substring(8, senderEndIndex).trim(); // Extract sender name
-                            String privateMessage = message.substring(senderEndIndex + 1).trim(); // Extract message content
-                            privateChatHandler.displayMessage(sender, privateMessage); // Call the handler to display the message
-                        }
-                    } else {
-                        messageArea.append(message + "\n");
-                    }
+                    processMessage(message);
                     logger.info("Message received: " + message);
                 }
             } catch (IOException e) {
-                logger.log(Level.SEVERE, "Error reading from server: " + e.getMessage(), e);
-                shutdown();
+                logger.log(Level.SEVERE, "Connection lost. Attempting to reconnect...", e);
+                showErrorMessage("Connection lost. Trying to reconnect...");
+                reconnect();
             }
         }
+    }
+
+    private void processMessage(String message) {
+        SwingUtilities.invokeLater(() -> {
+            if (message.startsWith("PM from")) {
+                handlePrivateMessage(message);
+            } else {
+                messageArea.append(message + "\n");
+            }
+        });
+    }
+
+    private void handlePrivateMessage(String message) {
+        int senderEndIndex = message.indexOf(":");
+        if (senderEndIndex != -1) {
+            String sender = message.substring(8, senderEndIndex).trim(); // Extract sender name
+            String privateMessage = message.substring(senderEndIndex + 1).trim(); // Extract message content
+            privateChatHandler.displayMessage(sender, privateMessage);
+        }
+    }
+
+    private void reconnect() {
+        shutdown();
+        try {
+            Thread.sleep(3000); // Wait before attempting to reconnect
+            connectToServer();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logger.log(Level.SEVERE, "Reconnection attempt interrupted.", e);
+        }
+    }
+
+    private void showErrorMessage(String message) {
+        SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(frame, message, "Error", JOptionPane.ERROR_MESSAGE));
     }
 
     private void setupUI() {

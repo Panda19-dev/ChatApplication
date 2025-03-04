@@ -19,25 +19,28 @@ public class ConnectionHandler implements Runnable {
     private final PrintWriter out;
     private String nickname;
     private final CommandHandler commandHandler;
-    private boolean kicked;
+    private volatile boolean kicked;
     private final Server server;
-    private volatile boolean running; // Use volatile for thread safety
+    private volatile boolean running;
 
     public ConnectionHandler(Socket client, CommandHandler commandHandler, Server server) throws IOException {
         this.client = client;
         this.commandHandler = commandHandler;
         this.server = server;
-        out = new PrintWriter(client.getOutputStream(), true); // Initialize writer
-        in = new BufferedReader(new InputStreamReader(client.getInputStream())); // Initialize reader
-        this.running = true; // Set the flag to true initially
+        this.out = new PrintWriter(client.getOutputStream(), true);
+        this.in = new BufferedReader(new InputStreamReader(client.getInputStream()));
+        this.running = true; // Thread should be running initially
+        this.kicked = false;
     }
 
     @Override
     public void run() {
         try {
+            // Welcome the client and request a nickname
             out.println("Please enter a nickname: ");
             nickname = in.readLine();
 
+            // Ensure nickname is valid
             if (nickname == null || nickname.isBlank()) {
                 throw new InvalidCommandArgumentException("Invalid nickname. Please provide a valid nickname.");
             }
@@ -45,6 +48,7 @@ public class ConnectionHandler implements Runnable {
             logger.info(nickname + " connected!");
             broadcastAsServer(nickname + " joined the chat!");
 
+            // Main loop: keep listening for incoming messages
             String message;
             while (running && (message = in.readLine()) != null) {
                 if (!message.isBlank()) {
@@ -55,7 +59,10 @@ public class ConnectionHandler implements Runnable {
             logger.log(Level.WARNING, "Connection error: " + e.getMessage(), e);
             shutdown();
         } catch (InvalidCommandArgumentException e) {
-            sendMessage(e.getMessage());
+            sendMessage("SERVER: " + e.getMessage());
+            shutdown();
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Unexpected error: " + e.getMessage(), e);
             shutdown();
         }
     }
@@ -63,16 +70,19 @@ public class ConnectionHandler implements Runnable {
     private void processMessage(String message) {
         String prefix = "/";
         if (message.startsWith(prefix)) {
+            // Command message
             String[] messageSplit = message.split(" ");
             String commandName = messageSplit[0].substring(prefix.length());
             String[] commandArgs = new String[messageSplit.length - 1];
             System.arraycopy(messageSplit, 1, commandArgs, 0, commandArgs.length);
+
             try {
                 commandHandler.executeCommand(commandName, commandArgs, this);
             } catch (CommandNotFoundException | InvalidCommandArgumentException e) {
                 sendMessage("SERVER: " + e.getMessage());
             }
         } else {
+            // Regular chat message
             broadcast(message, nickname);
         }
     }
@@ -110,18 +120,25 @@ public class ConnectionHandler implements Runnable {
     public void kick() {
         kicked = true;
         try {
-            client.close();
+            if (client != null && !client.isClosed()) {
+                client.close();
+            }
         } catch (IOException e) {
             logger.log(Level.WARNING, "Error closing client socket: " + e.getMessage(), e);
         }
     }
 
     public void shutdown() {
-        running = false; // Stop the loop
+        running = false;
         try {
-            in.close();
-            out.close();
-            if (!client.isClosed()) {
+            // Close resources and handle cleanup
+            if (in != null) {
+                in.close();
+            }
+            if (out != null) {
+                out.close();
+            }
+            if (client != null && !client.isClosed()) {
                 client.close();
             }
             server.removeHandler(this);

@@ -10,28 +10,23 @@ import models.handlers.ConnectionHandler;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketTimeoutException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 import java.util.logging.Logger;
 
 public class Server {
 
     private static final Logger logger = Logger.getLogger(Server.class.getName());
-    private final ArrayList<ConnectionHandler> connections;
+    private final CopyOnWriteArrayList<ConnectionHandler> connections; // Thread-safe list
     private final CommandHandler commandHandler;
-    private final ConcurrentHashMap<String, List<ConnectionHandler>> groups; // Store groups and their members
+    private final ConcurrentHashMap<String, List<ConnectionHandler>> groups; // Thread-safe group storage
     private ExecutorService pool;
 
     public Server() {
-        this.connections = new ArrayList<>();
-        this.commandHandler = CommandHandler.getInstance();  // Use the singleton instance
+        this.connections = new CopyOnWriteArrayList<>();
+        this.commandHandler = CommandHandler.getInstance();  // Singleton
         this.groups = new ConcurrentHashMap<>();
     }
-
 
     public void start(int port) {
         try (ServerSocket serverSocket = new ServerSocket(port)) {
@@ -44,14 +39,12 @@ public class Server {
             while (true) {
                 try {
                     Socket client = serverSocket.accept();
-                    logger.info("New client connected");
+                    logger.info("New client connected: " + client.getInetAddress());
                     ConnectionHandler connectionHandler = new ConnectionHandler(client, commandHandler, this);
                     connections.add(connectionHandler);
                     pool.execute(connectionHandler);
-                } catch (SocketTimeoutException e) {
-                    logger.warning("Accept timed out: " + e.getMessage());
                 } catch (IOException e) {
-                    logger.severe("IO exception occurred: " + e.getMessage());
+                    logger.severe("Error accepting client connection: " + e.getMessage());
                 }
             }
         } catch (IOException e) {
@@ -83,16 +76,13 @@ public class Server {
             return false;
         }
 
-        List<ConnectionHandler> members = new ArrayList<>();
-        members.add(creator);
-        groups.put(groupName, members);
+        groups.put(groupName, new CopyOnWriteArrayList<>(List.of(creator)));
         creator.sendMessage("Server: Group '" + groupName + "' created and you have joined.");
         return true;
     }
 
     public synchronized boolean joinGroup(String groupName, ConnectionHandler handler) {
         List<ConnectionHandler> members = groups.get(groupName);
-
         if (members == null) {
             handler.sendMessage("Server: Group '" + groupName + "' does not exist.");
             return false;
@@ -111,13 +101,7 @@ public class Server {
 
     public synchronized boolean leaveGroup(String groupName, ConnectionHandler handler) {
         List<ConnectionHandler> members = groups.get(groupName);
-
-        if (members == null) {
-            handler.sendMessage("Server: Group '" + groupName + "' does not exist.");
-            return false;
-        }
-
-        if (!members.contains(handler)) {
+        if (members == null || !members.contains(handler)) {
             handler.sendMessage("Server: You are not a member of '" + groupName + "'.");
             return false;
         }
@@ -128,9 +112,8 @@ public class Server {
 
         if (members.isEmpty()) {
             groups.remove(groupName);
-            logger.info("Server: Group '" + groupName + "' has been removed as it has no members.");
+            logger.info("Server: Group '" + groupName + "' removed due to no members.");
         }
-
         return true;
     }
 
@@ -148,20 +131,18 @@ public class Server {
     }
 
     public ConnectionHandler findHandlerByNickname(String nickname) {
-        for (ConnectionHandler handler : connections) {
-            if (handler.getNickname().equals(nickname)) {
-                return handler;
-            }
-        }
-        return null; // Not found
+        return connections.stream()
+                .filter(handler -> handler.getNickname().equals(nickname))
+                .findFirst()
+                .orElse(null);
     }
 
     public void removeHandler(ConnectionHandler handler) {
         connections.remove(handler);
     }
 
-    public ArrayList<ConnectionHandler> getConnections() {
-        return connections;
+    public List<ConnectionHandler> getConnections() {
+        return List.copyOf(connections); // Returns an unmodifiable list to prevent external modifications
     }
 
     public void removeConnection(ConnectionHandler connection) {
@@ -181,11 +162,14 @@ public class Server {
     }
 
     private void shutdown() {
+        logger.info("Shutting down server...");
         try {
-            pool.shutdownNow(); // Interrupts any running tasks
+            pool.shutdownNow();
             for (ConnectionHandler connection : connections) {
                 connection.shutdown();
             }
+            connections.clear();
+            groups.clear();
         } catch (Exception e) {
             logger.severe("Error during server shutdown: " + e.getMessage());
         }
@@ -196,5 +180,4 @@ public class Server {
         Server server = new Server();
         server.start(port);
     }
-
 }
